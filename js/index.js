@@ -62,12 +62,12 @@ var Index = (function() {
       $(this).find('.input-item').focus().keypress(function(e) {
         var key = e.which;
         if(key === 13) {
-          _appendShowItem(itemList);
+          _appendShowItem(itemWrap, itemList);
         }
       });
       $(this).find('.submit').click(function(event) {
         event.stopPropagation();
-        _appendShowItem(itemList);
+        _appendShowItem(itemWrap, itemList);
       });
       $(this).find('.cancel').click(function(event) {
         event.stopPropagation();
@@ -96,7 +96,7 @@ var Index = (function() {
   /**
    * 增加展示片段到列表(itemList)
    */
-  var _appendShowItem = function(itemList) {
+  var _appendShowItem = function(itemWrap, itemList) {
     var name = $(itemList).find('.input-item').first().val();
     if(name && name !== '') {
       var itemWrap = $(itemList).find('.item-wrap');
@@ -106,10 +106,11 @@ var Index = (function() {
         $.tmpl(_showTmpl, {name: name}).appendTo(itemList);
       }
       _appendInputItem(itemList);
+      _checkShowDefault();
     } else {
-      $(itemList).remove();
+      _cancelItemWrap(itemWrap);
     }
-    _checkShowDefault();
+    
     _initShowItem();
   };
 
