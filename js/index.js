@@ -57,17 +57,28 @@ var Index = (function() {
    */
   var _initInputListener = function() {
     $('.item-wrap').each(function() {
-      var itemWrap = this;
-      var itemList = $(itemWrap).parent();
+      var itemWrap = this,
+          itemList = $(itemWrap).parent(),
+          getVal = function(){
+            return $('.input-item :first', itemList).val();
+          },
+          submit = function(){
+            var val = getVal();
+            if (val && val != '')_appendShowItem(itemList, val);
+            else _cancelItemWrap(itemWrap);
+
+            _initShowItem();
+          };
+
       $(this).find('.input-item').focus().keypress(function(e) {
         var key = e.which;
         if(key === 13) {
-          _appendShowItem(itemWrap, itemList);
+          submit();
         }
       });
       $(this).find('.submit').click(function(event) {
         event.stopPropagation();
-        _appendShowItem(itemWrap, itemList);
+        submit();
       });
       $(this).find('.cancel').click(function(event) {
         event.stopPropagation();
@@ -96,8 +107,7 @@ var Index = (function() {
   /**
    * 增加展示片段到列表(itemList)
    */
-  var _appendShowItem = function(itemWrap, itemList) {
-    var name = $(itemList).find('.input-item').first().val();
+  var _appendShowItem = function(itemList, name) {
     if(name && name !== '') {
       var itemWrap = $(itemList).find('.item-wrap');
       if(itemWrap.size() > 0) {
@@ -106,12 +116,7 @@ var Index = (function() {
         $.tmpl(_showTmpl, {name: name}).appendTo(itemList);
       }
       _appendInputItem(itemList);
-      _checkShowDefault();
-    } else {
-      _cancelItemWrap(itemWrap);
     }
-    
-    _initShowItem();
   };
 
   /**
@@ -185,10 +190,44 @@ var Index = (function() {
     })
   };
 
+  var getGridJson = function () {
+    var datas = {}, dom = $('.show-grid');
+    dom.each(function(i, item){
+      var title = $('.show-title', item).html(),
+          itemLists = $('.show-item', item),
+          data = {title: title, child: []};
+
+      itemLists.each(function(j, itemList){
+        var itemName = $('.show-item-name', itemList);
+        data.child.push(itemName.html());
+      });
+      datas[title] = data;
+    });
+    return datas;
+  }
+  var setGridJson = function (datas) {
+    var dom = $('.show-grid');
+    dom.each(function(i, item){
+      var title = $('.show-title', item).html(),
+          itemList = $('.item-list', item),
+          data = datas[title];
+
+      for (var j = 0, len = data.child.length; j < len; j++){
+        var name = data.child[j];
+        _appendShowItem(itemList, name);
+      }
+
+    });
+  }
+  /**
+   * 配置属性
+   */
+  var config = {};
+
   /**
    * 初始化页面
    */
-  var init = function() {
+  var init = function(conf) {
     $('.show-grid').click(function(event) {
       event.stopPropagation();
       var itemList = $(this).find('.item-list').first();
@@ -197,9 +236,14 @@ var Index = (function() {
     _initShowItem();
     _initHelp();
     _initFeed();
+    //getGridJson();
+
+    var datas = $.parseJSON('{"问题":{"title":"问题","child":["sdfs"]},"现有的替代品":{"title":"现有的替代品","child":[]},"解":{"title":"解","child":["sdfsdf"]},"独特的价值主张":{"title":"独特的价值主张","child":[]},"高层次的概念":{"title":"高层次的概念","child":[]},"不公平的优势":{"title":"不公平的优势","child":[]},"客户细分":{"title":"客户细分","child":[]},"早期的采用者":{"title":"早期的采用者","child":[]},"关键指标":{"title":"关键指标","child":[]},"通道":{"title":"通道","child":[]},"成本结构":{"title":"成本结构","child":[]},"收入来源":{"title":"收入来源","child":[]}}');
+    setGridJson(datas);
   };
 
   return {
-    init: init
+    init: init,
+    getGridJson : getGridJson
   };
 }).call(this);
